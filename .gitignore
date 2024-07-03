@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/SickLeaveEmailAutomation.WPF/Resources/client_secret_85105905093-hbtg5m422nbs70qq8456rjg2ofeneioo.apps.googleusercontent.com.json
+/.gitignore
