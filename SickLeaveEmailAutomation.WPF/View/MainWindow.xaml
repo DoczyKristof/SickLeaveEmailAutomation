@@ -44,11 +44,11 @@
         </StackPanel>
         <StackPanel Grid.Column="1">
             <Button Command="{Binding ScanCommand}"
-                    Background="ForestGreen"
+                    Background="SpringGreen"
                     Height="69"
                     Width="420"
-                    Foreground="WhiteSmoke"
-                    Margin="0 200 0 50">
+                    Foreground="DarkSlateGray"
+                    Margin="0 150 0 50">
                 <Button.Content>
                     <TextBlock FontSize="20"><Bold>Scan file</Bold></TextBlock>
                 </Button.Content>
@@ -62,6 +62,26 @@
                        Padding="100 10 0 0 "
                        TextWrapping="Wrap"
                        Text="{Binding ProgressMessage}" />
+            <StackPanel Visibility="{Binding ScanModel.ImagePath, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}, ConverterParameter=Inverse}">
+                <CheckBox Margin="100 50 0 0"
+                          x:Name="chk_IsFileOkay">
+                    <CheckBox.Content>
+                        <TextBlock FontSize="14"
+                                   Foreground="GhostWhite"><Bold>The file is correct and ready to be sent.</Bold></TextBlock>
+                    </CheckBox.Content>
+                </CheckBox>
+                <Button Command="{Binding SendEmailCommand}"
+                        Background="ForestGreen"
+                        Height="69"
+                        Width="420"
+                        Foreground="WhiteSmoke"
+                        Margin="0 10 0 0"
+                        IsEnabled="{Binding IsChecked, ElementName=chk_IsFileOkay}">
+                    <Button.Content>
+                        <TextBlock FontSize="20"><Bold>Send email</Bold></TextBlock>
+                    </Button.Content>
+                </Button>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Window>
