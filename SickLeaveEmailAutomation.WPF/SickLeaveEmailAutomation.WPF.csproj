@@ -25,6 +25,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
+    <PackageReference Include="Google.Apis.Gmail.v1" Version="1.68.0.3427" />
+    <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
+    <PackageReference Include="MailKit" Version="4.7.0" />
+    <PackageReference Include="MimeKit" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Resources\bigger_ico.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>
