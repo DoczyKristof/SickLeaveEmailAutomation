@@ -1,9 +1,11 @@
 ﻿using SickLeaveEmailAutomation.WPF.Model;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using WIA;
 
 namespace SickLeaveEmailAutomation.WPF.ViewModel
@@ -31,12 +33,14 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
             set { SetProperty(ref _progressMessage, value); }
         }
 
-        public RelayCommand ScanCommand { get; set; }
+        public ICommand ScanCommand { get; set; }
+        public ICommand OpenImageCommand { get; set; }
 
         public ScanViewModel()
         {
             ScanModel = new ScanModel();
             ScanCommand = new RelayCommand(async (param) => await ScanAsync());
+            OpenImageCommand = new RelayCommand(OpenImage);
         }
 
         private async Task ScanAsync()
@@ -103,6 +107,14 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
                 MessageBox.Show($"An error occurred: {ex.Message}", "Scanner Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 ProgressMessage = "Error occurred during scanning.";
                 Progress = 0;
+            }
+        }
+
+        private void OpenImage(object parameter)
+        {
+            if (!string.IsNullOrEmpty(ScanModel.ImagePath) && File.Exists(ScanModel.ImagePath))
+            {
+                Process.Start(new ProcessStartInfo(ScanModel.ImagePath) { UseShellExecute = true });
             }
         }
     }
