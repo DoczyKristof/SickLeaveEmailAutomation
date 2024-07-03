@@ -12,6 +12,8 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
 {
     public class ScanViewModel : ViewModelBase
     {
+        private GmailService _gmailService;
+
         private ScanModel _scanModel;
         public ScanModel ScanModel
         {
@@ -35,12 +37,39 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
 
         public ICommand ScanCommand { get; set; }
         public ICommand OpenImageCommand { get; set; }
+        public RelayCommand SendEmailCommand { get; set; }
 
         public ScanViewModel()
         {
+            _gmailService = new GmailService("credentials.json");
+            SendEmailCommand = new RelayCommand(async (param) => await SendEmailAsync(), (param) => CanSendEmail());
             ScanModel = new ScanModel();
             ScanCommand = new RelayCommand(async (param) => await ScanAsync());
             OpenImageCommand = new RelayCommand(OpenImage);
+        }
+
+        private bool CanSendEmail()
+        {
+            return !string.IsNullOrEmpty(ScanModel.ImagePath) && File.Exists(ScanModel.ImagePath);
+        }
+
+        private async Task SendEmailAsync()
+        {
+            try
+            {
+                string senderName = "Your Name";
+                string senderEmail = "your-email@gmail.com";
+                string recipientEmail = "recipient@example.com";
+                string subject = "Subject";
+                string body = "Email Body";
+
+                await _gmailService.SendEmailAsync(senderName, senderEmail, recipientEmail, subject, body, ScanModel.ImagePath);
+                MessageBox.Show("Email sent successfully!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while sending the email: {ex.Message}");
+            }
         }
 
         private async Task ScanAsync()
