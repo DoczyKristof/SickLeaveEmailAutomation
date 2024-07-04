@@ -40,12 +40,17 @@
                      Visibility="{Binding ScanModel.ImagePath, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}, ConverterParameter=Inverse}" />
         </StackPanel>
         <StackPanel Grid.Column="1">
+            <TextBlock Text="{Binding BuildNumber}"
+                       VerticalAlignment="Bottom"
+                       HorizontalAlignment="Right"
+                       Margin="10"
+                       Foreground="White" />
             <Button Command="{Binding ScanCommand}"
                     Background="SpringGreen"
                     Height="69"
                     Width="420"
                     Foreground="DarkSlateGray"
-                    Margin="0 150 0 50"
+                    Margin="0 135 0 50"
                     IsEnabled="{Binding IsScanningButtonEnabled}">
                 <Button.Content>
                     <TextBlock FontSize="20"><Bold>Scan file</Bold></TextBlock>

@@ -3,6 +3,7 @@ using SickLeaveEmailAutomation.WPF.Model;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,6 +53,13 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
             set { SetProperty(ref _isScanningButtonEnabled, value); }
         }
 
+        private string _buildNumber;
+        public string BuildNumber
+        {
+            get { return _buildNumber; }
+            set { SetProperty(ref _buildNumber, value); }
+        }
+
         public ICommand ScanCommand { get; set; }
         public ICommand OpenImageCommand { get; set; }
         public ICommand SendEmailCommand { get; set; }
@@ -68,6 +76,15 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
             ScanModel = new ScanModel();
             ScanCommand = new RelayCommand(async (param) => await ScanAsync());
             OpenImageCommand = new RelayCommand(OpenImage);
+
+            BuildNumber = GetBuildNumber();
+            OnPropertyChanged(nameof(BuildNumber));
+        }
+
+        private string GetBuildNumber()
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            return $"Build: {version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
         }
 
         private bool CanSendEmail()
