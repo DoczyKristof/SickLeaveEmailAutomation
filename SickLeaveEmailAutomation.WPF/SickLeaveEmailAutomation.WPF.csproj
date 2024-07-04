@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <UserSecretsId>f49eb59f-dbe0-44e5-ae4e-a0b4ded57bab</UserSecretsId>
+    <AssemblyName>SickLeaveEmailHandler</AssemblyName>
+    <ApplicationIcon>cat-pot.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,6 +25,10 @@
       <Isolated>false</Isolated>
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="cat-pot.ico" />
   </ItemGroup>
 
   <ItemGroup>
