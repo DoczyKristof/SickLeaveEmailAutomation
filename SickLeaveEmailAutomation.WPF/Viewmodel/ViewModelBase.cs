@@ -20,7 +20,6 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
             }
 
             field = value;
-            OnPropertyChanged(propertyName);
             return true;
         }
     }
