@@ -82,11 +82,12 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
                 string senderName = _configuration["Gmail:MyName"];
                 string senderEmail = _configuration["Gmail:Email"];
                 string recipientEmail = _configuration["Gmail:RecipientEmail"];
+                string recipientEmail2 = _configuration["Gmail:RecipientEmail2"];
                 string subject = _configuration["Gmail:Subject"];
                 string body = BuildEmailBody();
 
                 SetEmailSendingButtonIsEnabled(false);
-                await _gmailService.SendEmailAsync(senderName, recipientEmail, subject, body, ScanModel.ImagePath);
+                await _gmailService.SendEmailAsync(senderName, new[] { recipientEmail, recipientEmail2 }, subject, body, ScanModel.ImagePath);
                 MessageBox.Show("Email sent successfully!");
                 await Task.Delay(1000);
                 SetEmailSendingButtonIsEnabled(true);

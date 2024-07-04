@@ -15,11 +15,16 @@ public class GmailService
         _appPassword = appPassword;
     }
 
-    public async Task SendEmailAsync(string senderName, string recipient, string subject, string body, string attachmentPath)
+    public async Task SendEmailAsync(string senderName, string[] recipients, string subject, string body, string attachmentPath)
     {
         var mimeMessage = new MimeMessage();
         mimeMessage.From.Add(new MailboxAddress(senderName, _senderEmail));
-        mimeMessage.To.Add(new MailboxAddress("", recipient));
+
+        foreach (var recipient in recipients)
+        {
+            mimeMessage.To.Add(new MailboxAddress("", recipient));
+        }
+
         mimeMessage.Subject = subject;
 
         var bodyPart = new TextPart("plain") { Text = body };
