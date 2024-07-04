@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SickLeaveEmailAutomation.WPF.View;
 using SickLeaveEmailAutomation.WPF.ViewModel;
 using System;
+using System.IO;
 using System.Windows;
 
 namespace SickLeaveEmailAutomation.WPF
@@ -35,10 +36,47 @@ namespace SickLeaveEmailAutomation.WPF
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
 
-            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            try
+            {
+                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                mainWindow.Show();
+            }
+            catch (Exception ex)
+            {
+                LogException(ex);
+                MessageBox.Show("An error occurred while starting the application. Please check the log for details.");
+                Shutdown();
+            }
+            
+
+            base.OnStartup(e);
+        }
+
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            LogException(e.Exception);
+            e.Handled = true;
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            LogException(e.ExceptionObject as Exception);
+        }
+
+        private void LogException(Exception ex)
+        {
+            if (ex == null)
+                return;
+
+            string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AppLog.txt");
+            using (StreamWriter writer = new StreamWriter(filePath, true))
+            {
+                writer.WriteLine($"{DateTime.Now}: {ex.Message}");
+                writer.WriteLine(ex.StackTrace);
+            }
         }
     }
 }
