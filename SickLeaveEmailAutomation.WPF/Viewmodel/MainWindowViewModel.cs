@@ -76,7 +76,6 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
 
             ScanModel = new ScanModel();
             BuildNumber = GetBuildNumber();
-            OnPropertyChanged(nameof(BuildNumber));
         }
 
         private string GetBuildNumber()
@@ -130,8 +129,6 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
                         ProgressMessage = "Scan complete!";
                         break;
                 }
-                OnPropertyChanged(nameof(Progress));
-                OnPropertyChanged(nameof(ProgressMessage));
             });
 
             try
@@ -141,12 +138,17 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 string filename = $"{_configuration["Gmail:AttachmentName"]}{timestamp}.jpg";
 
-                string filePath = await _fileScanService.ScanAsync(targetFolder, filename, progress);
+                string filePath = await Task.Run(() => _fileScanService.ScanAsync(targetFolder, filename, progress));
                 if (filePath != null)
                 {
                     ScanModel.ImagePath = filePath;
                     OnPropertyChanged(nameof(ScanModel));
                     OnPropertyChanged(nameof(ScanModel.ImagePath));
+                }
+                else
+                {
+                    ProgressMessage = "No scanner device has been chosen or is available.";
+                    Progress = 0;
                 }
             }
             catch (COMException comEx)
@@ -178,13 +180,11 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
         private void SetScanningButtonIsEnabled(bool isEnabled)
         {
             IsScanningButtonEnabled = isEnabled;
-            OnPropertyChanged(nameof(IsScanningButtonEnabled));
         }
 
         private void SetEmailSendingButtonIsEnabled(bool isEnabled)
         {
             IsEmailSendingButtonEnabled = isEnabled;
-            OnPropertyChanged(nameof(IsEmailSendingButtonEnabled));
         }
     }
 }
