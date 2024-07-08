@@ -1,22 +1,22 @@
 ﻿using Microsoft.Extensions.Configuration;
 using SickLeaveEmailAutomation.WPF.Model;
+using SickLeaveEmailAutomation.WPF.Services;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using WIA;
 
 namespace SickLeaveEmailAutomation.WPF.ViewModel
 {
-    public class ScanViewModel : ViewModelBase
+    public class MainWindowViewModel : ViewModelBase
     {
         private readonly IConfiguration _configuration;
-        private GmailService _gmailService;
+        private readonly EmailSendingService _emailSendingService;
+        private readonly FileScanService _fileScanService;
 
         private ScanModel _scanModel;
         public ScanModel ScanModel
@@ -64,19 +64,17 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
         public ICommand OpenImageCommand { get; set; }
         public ICommand SendEmailCommand { get; set; }
 
-        public ScanViewModel(IConfiguration configuration)
+        public MainWindowViewModel(IConfiguration configuration, EmailSendingService emailSendingService, FileScanService fileScanService)
         {
             _configuration = configuration;
-
-            var email = _configuration["Gmail:MyEmail"];
-            var appPassword = _configuration["Gmail:AppPassword"];
-            _gmailService = new GmailService(email, appPassword);
+            _emailSendingService = emailSendingService;
+            _fileScanService = fileScanService;
 
             SendEmailCommand = new RelayCommand(async (param) => await SendEmailAsync(), (param) => CanSendEmail());
-            ScanModel = new ScanModel();
             ScanCommand = new RelayCommand(async (param) => await ScanAsync());
             OpenImageCommand = new RelayCommand(OpenImage);
 
+            ScanModel = new ScanModel();
             BuildNumber = GetBuildNumber();
             OnPropertyChanged(nameof(BuildNumber));
         }
@@ -96,38 +94,19 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
         {
             try
             {
-                string senderName = _configuration["Gmail:MyName"];
-                string senderEmail = _configuration["Gmail:Email"];
-                string recipientEmail = _configuration["Gmail:RecipientEmail"];
-                string recipientEmail2 = _configuration["Gmail:RecipientEmail2"];
-                string subject = _configuration["Gmail:Subject"];
-                string body = BuildEmailBody();
-
                 SetEmailSendingButtonIsEnabled(false);
-                await _gmailService.SendEmailAsync(senderName, new[] { recipientEmail, recipientEmail2 }, subject, body, ScanModel.ImagePath);
+                await _emailSendingService.SendEmail(ScanModel);
                 MessageBox.Show("Email sent successfully!");
-                await Task.Delay(1000);
-                SetEmailSendingButtonIsEnabled(true);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred while sending the email: {ex.Message}");
+            }
+            finally
+            {
+                await Task.Delay(1000);
                 SetEmailSendingButtonIsEnabled(true);
             }
-        }
-
-        private string BuildEmailBody()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            sb.Append("Kedves Címzett!\n");
-            sb.Append('\n');
-            sb.Append("Csatolva küldöm a tárgyban megjelölt dokumentumot.\n");
-            sb.Append('\n');
-            sb.Append("Köszönettel:\n");
-            sb.Append(_configuration["Gmail:Myname"]);
-
-            return sb.ToString();
         }
 
         private async Task ScanAsync()
@@ -157,82 +136,35 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
 
             try
             {
-                await Task.Run(async () =>
+                string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                string targetFolder = Path.Combine(documentsPath, "Keresokeptlelen igazolasok");
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string filename = $"{_configuration["Gmail:AttachmentName"]}{timestamp}.jpg";
+
+                string filePath = await _fileScanService.ScanAsync(targetFolder, filename, progress);
+                if (filePath != null)
                 {
-                    ((IProgress<int>)progress).Report(10);
-                    await Task.Delay(500);
-
-                    CommonDialog dialog = new CommonDialog();
-                    Device device = dialog.ShowSelectDevice(WiaDeviceType.ScannerDeviceType, true, false);
-                    if (device != null)
-                    {
-                        Item item = device.Items[1];
-
-                        ((IProgress<int>)progress).Report(30);
-                        await Task.Delay(1000);
-
-                        ImageFile imageFile = (ImageFile)item.Transfer("{B96B3CAB-0728-11D3-9D7B-0000F81EF32E}");
-
-                        ((IProgress<int>)progress).Report(70);
-                        await Task.Delay(500);
-
-                        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                        string targetFolder = Path.Combine(documentsPath, "Keresokeptlelen igazolasok");
-
-                        if (!Directory.Exists(targetFolder))
-                        {
-                            Directory.CreateDirectory(targetFolder);
-                        }
-
-                        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                        string filename = string.Concat(_configuration["Gmail:AttachmentName"], timestamp, ".jpg");
-                        string fullPath = Path.Combine(targetFolder, filename);
-
-                        imageFile.SaveFile(fullPath);
-                        ScanModel.ImagePath = fullPath;
-
-                        ((IProgress<int>)progress).Report(100);
-
-                        OnPropertyChanged(nameof(ScanModel));
-                        OnPropertyChanged(nameof(ScanModel.ImagePath));
-                    }
-                    else
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            MessageBox.Show("No scanner device found. Please ensure the scanner is connected and turned on.", "Scanner Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        });
-                        ((IProgress<int>)progress).Report(0);
-                    }
-                });
+                    ScanModel.ImagePath = filePath;
+                    OnPropertyChanged(nameof(ScanModel));
+                    OnPropertyChanged(nameof(ScanModel.ImagePath));
+                }
             }
             catch (COMException comEx)
             {
                 MessageBox.Show($"A COM exception occurred: {comEx.Message} (Error Code: {comEx.ErrorCode:X})", "Scanner Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 ProgressMessage = "Error occurred during scanning.";
                 Progress = 0;
-                SetScanningButtonIsEnabled(true);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred: {ex.Message}", "Scanner Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 ProgressMessage = "Error occurred during scanning.";
                 Progress = 0;
+            }
+            finally
+            {
                 SetScanningButtonIsEnabled(true);
             }
-            SetScanningButtonIsEnabled(true);
-        }
-
-        void SetScanningButtonIsEnabled(bool isEnabled)
-        {
-            IsScanningButtonEnabled = isEnabled;
-            OnPropertyChanged(nameof(IsScanningButtonEnabled));
-        }
-
-        void SetEmailSendingButtonIsEnabled(bool isEnabled)
-        {
-            IsEmailSendingButtonEnabled = isEnabled;
-            OnPropertyChanged(nameof(IsEmailSendingButtonEnabled));
         }
 
         private void OpenImage(object parameter)
@@ -241,6 +173,18 @@ namespace SickLeaveEmailAutomation.WPF.ViewModel
             {
                 Process.Start(new ProcessStartInfo(ScanModel.ImagePath) { UseShellExecute = true });
             }
+        }
+
+        private void SetScanningButtonIsEnabled(bool isEnabled)
+        {
+            IsScanningButtonEnabled = isEnabled;
+            OnPropertyChanged(nameof(IsScanningButtonEnabled));
+        }
+
+        private void SetEmailSendingButtonIsEnabled(bool isEnabled)
+        {
+            IsEmailSendingButtonEnabled = isEnabled;
+            OnPropertyChanged(nameof(IsEmailSendingButtonEnabled));
         }
     }
 }

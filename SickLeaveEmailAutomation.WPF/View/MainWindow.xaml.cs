@@ -7,13 +7,13 @@ namespace SickLeaveEmailAutomation.WPF.View
     public partial class MainWindow : Window
     {
         private readonly IConfiguration _configuration;
-        private readonly ScanViewModel _scanViewModel;
+        private readonly MainWindowViewModel _mainWindowViewModel;
 
-        public MainWindow(IConfiguration configuration, ScanViewModel scanViewModel)
+        public MainWindow(IConfiguration configuration, MainWindowViewModel mainWindowViewModel)
         {
             _configuration = configuration;
-            _scanViewModel = scanViewModel;
-            DataContext = _scanViewModel;
+            _mainWindowViewModel = mainWindowViewModel;
+            DataContext = _mainWindowViewModel;
             InitializeComponent();
         }
     }

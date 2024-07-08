@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SickLeaveEmailAutomation.WPF.Services;
 using SickLeaveEmailAutomation.WPF.View;
 using SickLeaveEmailAutomation.WPF.ViewModel;
 using System;
@@ -31,7 +32,9 @@ namespace SickLeaveEmailAutomation.WPF
         {
             services.AddSingleton(Configuration);
             services.AddTransient<MainWindow>();
-            services.AddTransient<ScanViewModel>();
+            services.AddTransient<MainWindowViewModel>();
+            services.AddTransient<EmailSendingService>();
+            services.AddTransient<FileScanService>();
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -42,6 +45,7 @@ namespace SickLeaveEmailAutomation.WPF
             try
             {
                 var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                mainWindow.DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>();
                 mainWindow.Show();
             }
             catch (Exception ex)
@@ -50,7 +54,6 @@ namespace SickLeaveEmailAutomation.WPF
                 MessageBox.Show("An error occurred while starting the application. Please check the log for details.");
                 Shutdown();
             }
-            
 
             base.OnStartup(e);
         }
