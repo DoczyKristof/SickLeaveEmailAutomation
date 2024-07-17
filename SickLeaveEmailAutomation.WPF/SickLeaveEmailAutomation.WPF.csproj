@@ -8,8 +8,8 @@
 		<UserSecretsId>f49eb59f-dbe0-44e5-ae4e-a0b4ded57bab</UserSecretsId>
 		<AssemblyName>SickLeaveEmailHandler</AssemblyName>
 		<ApplicationIcon>cat-pot.ico</ApplicationIcon>
-		<AssemblyVersion>1.0.1.0</AssemblyVersion>
-		<FileVersion>1.0.1.0</FileVersion>
+		<AssemblyVersion>1.0.1.1</AssemblyVersion>
+		<FileVersion>1.0.1.1</FileVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
