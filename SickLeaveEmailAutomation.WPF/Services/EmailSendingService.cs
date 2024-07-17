@@ -24,10 +24,11 @@ namespace SickLeaveEmailAutomation.WPF.Services
             string senderName = _configuration["Gmail:MyName"];
             string recipientEmail = _configuration["Gmail:RecipientEmail"];
             string recipientEmail2 = _configuration["Gmail:RecipientEmail2"];
+            string recipientEmail3 = _configuration["Gmail:RecipientEmail3"];
             string subject = _configuration["Gmail:Subject"];
             string body = BuildEmailBody();
 
-            await _gmailService.SendEmailAsync(senderName, new[] { recipientEmail, recipientEmail2 }, subject, body, scanModel.ImagePath);
+            await _gmailService.SendEmailAsync(senderName, new[] { recipientEmail, recipientEmail2, recipientEmail3 }, subject, body, scanModel.ImagePath);
         }
 
         private string BuildEmailBody()
